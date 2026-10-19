@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Discover dependable everyday electronics at VOLTIVA.">
+  <title>VOLTIVA | Electronics for everyday</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="styles.css" rel="stylesheet">
+</head>
+<body data-page="home">
+  <div id="site-header"></div>
+  <main>
+    <section id="hero" class="container-fluid py-4 py-lg-5">
+      <div class="container">
+        <div id="home-carousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="6000">
+          <div class="carousel-indicators">
+            <button type="button" data-bs-target="#home-carousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#home-carousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#home-carousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+          </div>
+          <div class="carousel-inner rounded-4 overflow-hidden">
+            <div class="carousel-item active">
+              <div class="hero-slide" style="--hero-image: url('https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&amp;fit=crop&amp;w=1800&amp;q=85')">
+                <div class="hero-copy">
+                  <span class="badge rounded-pill text-bg-light mb-3">EVERYDAY TECH, BETTER</span>
+                  <h1 class="display-4 fw-bold">Make room for a little upgrade.</h1>
+                  <p class="lead">Smart picks for better sound, smoother work, and easier days.</p>
+                  <a class="btn btn-light btn-lg" href="products.html">Explore the collection <span aria-hidden="true">→</span></a>
+                </div>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="hero-slide hero-slide-audio" style="--hero-image: url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&amp;fit=crop&amp;w=1800&amp;q=85')">
+                <div class="hero-copy">
+                  <span class="badge rounded-pill text-bg-light mb-3">YOUR SOUND, YOUR WAY</span>
+                  <h2 class="display-4 fw-bold">Find your listening rhythm.</h2>
+                  <p class="lead">Headphones and speakers made for wherever the day takes you.</p>
+                  <a class="btn btn-light btn-lg" href="products.html?category=Audio">Shop audio <span aria-hidden="true">→</span></a>
+                </div>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="hero-slide hero-slide-home" style="--hero-image: url('https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&amp;fit=crop&amp;w=1800&amp;q=85')">
+                <div class="hero-copy">
+                  <span class="badge rounded-pill text-bg-light mb-3">A MORE THOUGHTFUL HOME</span>
+                  <h2 class="display-4 fw-bold">Little comforts. Big difference.</h2>
+                  <p class="lead">Discover clever everyday essentials for your favorite spaces.</p>
+                  <a class="btn btn-light btn-lg" href="products.html?category=Home">Shop home tech <span aria-hidden="true">→</span></a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#home-carousel" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span></button>
+          <button class="carousel-control-next" type="button" data-bs-target="#home-carousel" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span></button>
+        </div>
+      </div>
+    </section>
+    <section class="container py-4" aria-label="Shop by category">
+      <div class="d-flex justify-content-between align-items-end gap-3 mb-4">
+        <div><p class="text-uppercase fw-semibold text-secondary mb-1">Find your kind of tech</p><h2 class="fw-bold mb-0">Shop by category</h2></div>
+        <a href="products.html" class="link-dark fw-semibold">All products <span aria-hidden="true">→</span></a>
+      </div>
+      <div id="category-tiles" class="row g-3"></div>
+    </section>
+    <section class="container py-5">
+      <div class="d-flex justify-content-between align-items-end gap-3 mb-4">
+        <div><p class="text-uppercase fw-semibold text-secondary mb-1">A little something for less</p><h2 class="fw-bold mb-0">Deals worth a closer look</h2></div>
+        <a href="products.html" class="link-dark fw-semibold">Shop everything <span aria-hidden="true">→</span></a>
+      </div>
+      <div id="deal-products" class="row g-4"></div>
+    </section>
+    <section class="container pb-5">
+      <div class="editorial-banner rounded-4 overflow-hidden">
+        <div class="editorial-copy">
+          <p class="text-uppercase fw-semibold mb-2">A better workday starts here</p>
+          <h2 class="display-6 fw-bold">Make your setup work for you.</h2>
+          <p class="lead">Comfortable, practical picks for your home office.</p>
+          <a class="btn btn-light" href="products.html?category=Computing">Explore computing <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+    <section class="container pb-5">
+      <div class="d-flex justify-content-between align-items-end gap-3 mb-4">
+        <div><p class="text-uppercase fw-semibold text-secondary mb-1">Good choices, well loved</p><h2 class="fw-bold mb-0">Popular right now</h2></div>
+        <a href="products.html" class="link-dark fw-semibold">See the whole shop <span aria-hidden="true">→</span></a>
+      </div>
+      <div id="featured-products" class="row g-4"></div>
+    </section>
+    <section id="saved-section" class="container pb-5 d-none">
+      <div class="d-flex justify-content-between align-items-end gap-3 mb-4">
+        <div><p class="text-uppercase fw-semibold text-secondary mb-1">Kept close</p><h2 class="fw-bold mb-0">Your saved picks</h2></div>
+        <a href="products.html" class="link-dark fw-semibold">Browse products <span aria-hidden="true">→</span></a>
+      </div>
+      <div id="saved-products" class="row g-4"></div>
+    </section>
+    <section class="container pb-5">
+      <div class="p-4 p-lg-5 rounded-4 text-bg-dark">
+        <div class="row align-items-center g-3">
+          <div class="col-lg-7"><p class="text-uppercase fw-semibold text-white-50 mb-2">A note from VOLTIVA</p><h2 class="fw-bold">Good tech should feel simple.</h2><p class="mb-0">Thoughtfully picked everyday electronics, helpful details, and no guesswork.</p></div>
+          <div class="col-lg-5 text-lg-end"><a href="about.html" class="btn btn-light btn-lg">A little about us <span aria-hidden="true">→</span></a></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
