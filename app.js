@@ -85,7 +85,7 @@ function readCart() {
 function saveCart(cart) {
   try {
     localStorage.setItem(storageKey, JSON.stringify(cart));
-    updateCartCount();
+    updateHeaderCounts();
   } catch (error) {
     console.error("Could not save the cart.", error);
     window.alert("Your cart could not be saved in this browser. Please check your browser storage settings.");
@@ -110,11 +110,6 @@ function cartTotals(cart = readCart()) {
   return { quantity, total };
 }
 
-function updateCartCount() {
-  const count = document.getElementById("cart-count");
-  if (count) count.textContent = String(cartTotals().quantity);
-}
-
 function updateHeaderCounts() {
   const cartCount = document.getElementById("cart-count");
   const savedCount = document.getElementById("saved-count");
@@ -137,24 +132,24 @@ function updateCompareDock() {
     dock.setAttribute("aria-label", "Product comparison");
     document.body.append(dock);
   }
-  dock.innerHTML = `<span>${compared.length} product${compared.length === 1 ? "" : "s"} selected</span><button type="button" class="btn btn-light btn-sm" data-show-compare>Compare now</button><button type="button" class="btn btn-link link-light btn-sm" data-clear-compare>Clear</button>`;
+  dock.innerHTML = `<span>${compared.length} product${compared.length === 1 ? "" : "s"} selected</span><button type="button" class="button button-light button-small" data-show-compare>Compare now</button><button type="button" class="button button-quiet button-small" data-clear-compare>Clear</button>`;
 }
 
 function showComparison() {
   const compared = readStoredIds(compareKey).map(getProduct);
   if (!compared.length) return;
   const modalContent = document.getElementById("compare-content");
-  modalContent.innerHTML = `<div class="table-responsive"><table class="table align-middle mb-0">
+  modalContent.innerHTML = `<div class="comparison-table-wrap"><table class="comparison-table">
     <thead><tr><th scope="col">Product detail</th>${compared.map((product) => `<th scope="col">${product.name}</th>`).join("")}</tr></thead>
     <tbody>
       <tr><th scope="row">Image</th>${compared.map((product) => `<td><img src="${product.image}" alt="${product.alt}" class="compare-image"></td>`).join("")}</tr>
       <tr><th scope="row">Category</th>${compared.map((product) => `<td>${product.category}</td>`).join("")}</tr>
-      <tr><th scope="row">Price</th>${compared.map((product) => `<td class="fw-bold">${formatPrice(product.price)}</td>`).join("")}</tr>
+      <tr><th scope="row">Price</th>${compared.map((product) => `<td class="price-text">${formatPrice(product.price)}</td>`).join("")}</tr>
       <tr><th scope="row">Details</th>${compared.map((product) => `<td>${product.description}</td>`).join("")}</tr>
-      <tr><th scope="row">Add to cart</th>${compared.map((product) => `<td><button class="btn btn-dark btn-sm" type="button" data-add-to-cart="${product.id}">Add</button></td>`).join("")}</tr>
+      <tr><th scope="row">Add to cart</th>${compared.map((product) => `<td><button class="button button-dark button-small" type="button" data-add-to-cart="${product.id}">Add</button></td>`).join("")}</tr>
     </tbody>
   </table></div>`;
-  bootstrap.Modal.getOrCreateInstance(document.getElementById("compare-modal")).show();
+  document.getElementById("comparison-dialog").showModal();
 }
 
 function initializeAddToCart() {
@@ -211,12 +206,15 @@ function initializeProductActions() {
         writeStoredIds(compareKey, [...compared, id]);
       }
       updateProductActionButtons();
+      updateCompareDock();
       return;
     }
     if (event.target.closest("[data-show-compare]")) showComparison();
+    if (event.target.closest("[data-close-compare]")) document.getElementById("comparison-dialog").close();
     if (event.target.closest("[data-clear-compare]")) {
       writeStoredIds(compareKey, []);
       updateProductActionButtons();
+      updateCompareDock();
     }
   });
 }
@@ -245,38 +243,45 @@ function renderHeader() {
   ];
   document.getElementById("site-header").innerHTML = `
     <div class="store-topbar">
-      <div class="container d-flex justify-content-between align-items-center">
+      <div class="page-width topbar-content">
         <span>Good tech, thoughtfully picked.</span>
         <a href="contact.html">Need a hand? Talk to us <span aria-hidden="true">→</span></a>
       </div>
     </div>
-    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
-      <div class="container">
-        <a class="navbar-brand d-inline-flex align-items-center gap-2 fw-bold fs-4" href="index.html" aria-label="VOLTIVA home">
+    <nav class="main-navigation" aria-label="Main navigation">
+      <div class="page-width navigation-content">
+        <a class="brand-link" href="index.html" aria-label="VOLTIVA home">
           <img class="brand-logo" src="https://images.openai.com/static-rsc-4/Ka4wd1jZ69kz0v2vWTgJfWMlP3QeKAgVXAaN-hX8WtqBAabj5jgPV0B-SW_pbdKqtwPfYA7DzMZT2qeqVxgECkDkZeAmbzmstaB69Ljfw2Mx8nay5tC9r0100GLF1SdZCd5V9L5OmV8olL-e5uHnyxSSisyiTTlnVT4IQH7fWf8TIWxnI7l9wOMWN2n0KJ3k?purpose=fullsize" alt="">
           <span>VOLTIVA</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-navigation" aria-controls="main-navigation" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-        <form id="site-search" class="store-search mx-lg-4 my-3 my-lg-0" action="products.html" method="get" role="search">
-          <label class="visually-hidden" for="store-search-input">Search the shop</label>
-          <input id="store-search-input" name="q" type="search" class="form-control" placeholder="Search products, brands and more">
-          <button class="btn btn-dark" type="submit" aria-label="Search">Search</button>
+        <button class="menu-toggle" type="button" aria-controls="main-navigation-links" aria-expanded="false" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+        <form id="site-search" class="store-search" action="products.html" method="get" role="search">
+          <label class="screen-reader-only" for="store-search-input">Search the shop</label>
+          <input id="store-search-input" name="q" type="search" placeholder="Search products, brands and more">
+          <button class="button button-dark" type="submit" aria-label="Search">Search</button>
         </form>
-        <div class="collapse navbar-collapse" id="main-navigation">
-          <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-            ${links.map(([label, href]) => `<li class="nav-item"><a class="nav-link${active === href ? " active fw-semibold" : ""}" href="${href}"${active === href ? ' aria-current="page"' : ""}>${label}</a></li>`).join("")}
-            <li class="nav-item"><a class="nav-link" href="products.html?saved=true">Saved <span class="badge rounded-pill text-bg-light" id="saved-count">0</span></a></li>
-            <li class="nav-item"><a class="btn btn-dark ms-lg-2" href="cart.html">Cart <span class="badge text-bg-light ms-1" id="cart-count" aria-label="items in cart">0</span></a></li>
+        <div class="navigation-links" id="main-navigation-links">
+          <ul>
+            ${links.map(([label, href]) => `<li><a class="nav-link${active === href ? " is-current" : ""}" href="${href}"${active === href ? ' aria-current="page"' : ""}>${label}</a></li>`).join("")}
+            <li><a class="nav-link" href="products.html?saved=true">Saved <span class="count-badge" id="saved-count">0</span></a></li>
+            <li><a class="button button-dark cart-link" href="cart.html">Cart <span class="count-badge" id="cart-count" aria-label="items in cart">0</span></a></li>
           </ul>
         </div>
       </div>
     </nav>
-    <nav class="category-nav border-bottom" aria-label="Product categories">
-      <div class="container d-flex gap-4 overflow-x-auto py-2">
+    <nav class="category-nav" aria-label="Product categories">
+      <div class="page-width category-nav-links">
         ${["Audio", "Computing", "Mobile", "Home"].map((category) => `<a href="products.html?category=${encodeURIComponent(category)}">${category}</a>`).join("")}
         <a href="products.html">Shop all</a>
       </div>
     </nav>`;
+  const menuButton = document.querySelector(".menu-toggle");
+  const navigation = document.getElementById("main-navigation-links");
+  menuButton.addEventListener("click", () => {
+    const isExpanded = menuButton.getAttribute("aria-expanded") === "true";
+    menuButton.setAttribute("aria-expanded", String(!isExpanded));
+    navigation.classList.toggle("is-open", !isExpanded);
+  });
   document.getElementById("site-search").addEventListener("submit", (event) => {
     const input = document.getElementById("store-search-input");
     if (!input.value.trim()) {
@@ -289,59 +294,51 @@ function renderHeader() {
 
 function renderFooter() {
   document.getElementById("site-footer").innerHTML = `
-    <footer class="container py-4">
-      <div class="row align-items-center gy-3">
-        <div class="col-md-6"><a class="text-decoration-none fw-bold fs-5" href="index.html">VOLTIVA</a><p class="mb-0 mt-1 text-white-50">Thoughtful tech for everyday life.</p></div>
-        <div class="col-md-6 text-md-end"><a href="products.html" class="me-3">Shop</a><a href="about.html" class="me-3">About</a><a href="contact.html">Contact</a><p class="mb-0 mt-2 text-white-50">© ${new Date().getFullYear()} VOLTIVA</p></div>
-      </div>
+    <footer class="page-width footer-content">
+      <div><a class="footer-brand" href="index.html">VOLTIVA</a><p>Thoughtful tech for everyday life.</p></div>
+      <div class="footer-links"><div><a href="products.html">Shop</a><a href="about.html">About</a><a href="contact.html">Contact</a></div><p>© ${new Date().getFullYear()} VOLTIVA</p></div>
     </footer>`;
   document.body.insertAdjacentHTML("beforeend", `
-    <div class="modal fade" id="compare-modal" tabindex="-1" aria-labelledby="compare-modal-title" aria-hidden="true">
-      <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header"><h2 class="modal-title fs-5 fw-bold" id="compare-modal-title">Compare products</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
-          <div id="compare-content" class="modal-body"></div>
-        </div>
-      </div>
-    </div>`);
+    <dialog class="comparison-dialog" id="comparison-dialog" aria-labelledby="comparison-dialog-title">
+      <div class="dialog-heading"><h2 id="comparison-dialog-title">Compare products</h2><button class="dialog-close" type="button" data-close-compare aria-label="Close">×</button></div>
+      <div id="compare-content"></div>
+    </dialog>`);
 }
 
 function productCard(product) {
   const onOffer = isOffer(product);
   const saved = readStoredIds(savedKey).includes(product.id);
   const compared = readStoredIds(compareKey).includes(product.id);
-  return `<div class="col-sm-6 col-lg-4">
-    <article data-product="${product.id}" class="card h-100 border-0 shadow-sm overflow-hidden">
+  return `<article data-product="${product.id}" class="product-card">
       <div class="product-image-wrap">
         ${onOffer ? '<span class="sale-badge">Special offer</span>' : ""}
         <a href="product.html?id=${encodeURIComponent(product.id)}" aria-label="View details for ${product.name}">
-          <img src="${product.image}" class="card-img-top" alt="${product.alt}" loading="lazy">
+          <img src="${product.image}" alt="${product.alt}" loading="lazy">
         </a>
       </div>
-      <div class="card-body d-flex flex-column p-3 p-lg-4">
-        <p class="small text-uppercase fw-semibold text-secondary mb-2">${product.category}</p>
-        <h3 class="h5 fw-bold"><a class="product-title-link" href="product.html?id=${encodeURIComponent(product.id)}">${product.name}</a></h3>
-        <p class="text-secondary">${product.description}</p>
-        <div class="mt-auto">
-          <div class="d-flex align-items-center gap-2 mb-3"><span class="fw-bold fs-5">${formatPrice(product.price)}</span></div>
-          <div class="d-flex flex-wrap align-items-center gap-2">
-            <button class="btn btn-dark flex-grow-1" type="button" data-add-to-cart="${product.id}">Add to cart</button>
-            <button class="btn btn-outline-secondary" type="button" data-save-product="${product.id}" aria-pressed="${saved}">${saved ? "♥ Saved" : "♡ Save"}</button>
+      <div class="product-card-content">
+        <p class="eyebrow">${product.category}</p>
+        <h3><a class="product-title-link" href="product.html?id=${encodeURIComponent(product.id)}">${product.name}</a></h3>
+        <p class="muted-copy">${product.description}</p>
+        <div class="product-card-actions">
+          <p class="price-text">${formatPrice(product.price)}</p>
+          <div class="button-row">
+            <button class="button button-dark grow-button" type="button" data-add-to-cart="${product.id}">Add to cart</button>
+            <button class="button button-outline" type="button" data-save-product="${product.id}" aria-pressed="${saved}">${saved ? "♥ Saved" : "♡ Save"}</button>
           </div>
-          <div class="d-flex justify-content-between align-items-center">
-            <a class="btn btn-link link-secondary btn-sm px-0 mt-2" href="product.html?id=${encodeURIComponent(product.id)}">View details <span aria-hidden="true">→</span></a>
-            <button class="btn btn-link link-secondary btn-sm px-0 mt-2" type="button" data-compare-product="${product.id}" aria-pressed="${compared}">${compared ? "Selected" : "Compare"}</button>
+          <div class="card-secondary-actions">
+            <a class="text-link" href="product.html?id=${encodeURIComponent(product.id)}">View details <span aria-hidden="true">→</span></a>
+            <button class="text-button" type="button" data-compare-product="${product.id}" aria-pressed="${compared}">${compared ? "Selected" : "Compare"}</button>
           </div>
         </div>
       </div>
-    </article>
-  </div>`;
+    </article>`;
 }
 
 function renderProductGrid(target, items, emptyMessage = "No products match your search. Try another name or category.") {
   target.innerHTML = items.length
     ? items.map(productCard).join("")
-    : `<div class="col-12"><p class="border rounded-4 p-4 mb-0">${emptyMessage}</p></div>`;
+    : `<p class="empty-state">${emptyMessage}</p>`;
   updateCompareDock();
 }
 
@@ -388,8 +385,8 @@ function initializeProductDetails() {
   const product = getProduct(params.get("id"));
   if (!product) {
     document.title = "Product not found | VOLTIVA";
-    container.innerHTML = `<div class="border rounded-4 p-5 text-center"><p class="text-uppercase fw-semibold text-secondary">Not found</p><h1 class="h3 fw-bold">We couldn’t find that product.</h1><p class="text-secondary">It may have moved, or the link may be out of date.</p><a class="btn btn-dark" href="products.html">Back to all products</a></div>`;
-    document.getElementById("related-products-section").classList.add("d-none");
+    container.innerHTML = `    <div class="empty-state centered-panel"><p class="eyebrow">Not found</p><h1>We couldn’t find that product.</h1><p class="muted-copy">It may have moved, or the link may be out of date.</p><a class="button button-dark" href="products.html">Back to all products</a></div>`;
+    document.getElementById("related-products-section").classList.add("is-hidden");
     return;
   }
 
@@ -397,42 +394,42 @@ function initializeProductDetails() {
   const onOffer = isOffer(product);
   const isSaved = readStoredIds(savedKey).includes(product.id);
   container.innerHTML = `
-    <nav aria-label="Breadcrumb" class="mb-4">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-        <li class="breadcrumb-item"><a href="products.html?category=${encodeURIComponent(product.category)}">${product.category}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">${product.name}</li>
+    <nav aria-label="Breadcrumb" class="breadcrumbs">
+      <ol>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="products.html?category=${encodeURIComponent(product.category)}">${product.category}</a></li>
+        <li aria-current="page">${product.name}</li>
       </ol>
     </nav>
-    <div class="row g-4 g-lg-5 align-items-start">
-      <div class="col-lg-6">
+    <div class="product-detail-layout">
+      <div>
         <div class="detail-image-frame">
           ${onOffer ? '<span class="sale-badge">Special offer</span>' : ""}
-          <img src="${product.image}" class="img-fluid" alt="${product.alt}">
+          <img src="${product.image}" alt="${product.alt}">
         </div>
       </div>
-      <div class="col-lg-6">
-        <p class="text-uppercase fw-semibold text-secondary mb-2">${product.category}</p>
-        <h1 class="display-6 fw-bold">${product.name}</h1>
-        <p class="lead text-secondary">${product.description}</p>
-        <div class="d-flex align-items-center flex-wrap gap-3 my-4">
-          <span class="display-6 fw-bold">${formatPrice(product.price)}</span>
-          ${onOffer ? '<span class="badge rounded-pill text-bg-success">Special offer</span>' : ""}
+      <div class="product-detail-copy">
+        <p class="eyebrow">${product.category}</p>
+        <h1>${product.name}</h1>
+        <p class="intro muted-copy">${product.description}</p>
+        <div class="detail-price-row">
+          <span class="price-text large-price">${formatPrice(product.price)}</span>
+          ${onOffer ? '<span class="offer-pill">Special offer</span>' : ""}
         </div>
         <p class="detail-description">${product.details}</p>
-        <div class="border rounded-4 p-4 my-4">
-          <h2 class="h5 fw-bold mb-3">Why you’ll like it</h2>
-          <ul class="detail-highlights mb-0">${product.highlights.map((highlight) => `<li>${highlight}</li>`).join("")}</ul>
+        <div class="info-panel highlights-panel">
+          <h2>Why you’ll like it</h2>
+          <ul class="detail-highlights">${product.highlights.map((highlight) => `<li>${highlight}</li>`).join("")}</ul>
         </div>
-        <div class="d-flex flex-wrap align-items-end gap-3">
-          <div>
-            <label for="product-quantity" class="form-label fw-semibold">Quantity</label>
-            <input id="product-quantity" class="form-control form-control-lg detail-quantity" type="number" min="1" max="99" value="1" inputmode="numeric">
+        <div class="detail-actions">
+          <div class="quantity-field">
+            <label for="product-quantity">Quantity</label>
+            <input id="product-quantity" type="number" min="1" max="99" value="1" inputmode="numeric">
           </div>
-          <button class="btn btn-dark btn-lg flex-grow-1" type="button" data-add-to-cart="${product.id}" data-quantity-input="product-quantity">Add to cart</button>
-          <button class="btn btn-outline-secondary btn-lg" type="button" data-save-product="${product.id}" aria-pressed="${isSaved}">${isSaved ? "♥ Saved" : "♡ Save"}</button>
+          <button class="button button-dark button-large grow-button" type="button" data-add-to-cart="${product.id}" data-quantity-input="product-quantity">Add to cart</button>
+          <button class="button button-outline button-large" type="button" data-save-product="${product.id}" aria-pressed="${isSaved}">${isSaved ? "♥ Saved" : "♡ Save"}</button>
         </div>
-        <p class="small text-secondary mt-3 mb-0">Product reference: ${product.id}</p>
+        <p class="fine-print">Product reference: ${product.id}</p>
       </div>
     </div>`;
 
@@ -450,18 +447,16 @@ function initializeHome() {
 
 function renderCategoryTiles() {
   document.getElementById("category-tiles").innerHTML = categoryImages.map((category) => `
-    <div class="col-6 col-lg-3">
-      <a class="category-tile" href="products.html?category=${encodeURIComponent(category.name)}">
-        <img src="${category.image}" alt="${category.alt}" loading="lazy">
-        <span>${category.name}<span aria-hidden="true"> →</span></span>
-      </a>
-    </div>`).join("");
+    <a class="category-tile" href="products.html?category=${encodeURIComponent(category.name)}">
+      <img src="${category.image}" alt="${category.alt}" loading="lazy">
+      <span>${category.name}<span aria-hidden="true"> →</span></span>
+    </a>`).join("");
 }
 
 function renderSavedProducts() {
   const section = document.getElementById("saved-section");
   const saved = readStoredIds(savedKey).map(getProduct);
-  section.classList.toggle("d-none", saved.length === 0);
+  section.classList.toggle("is-hidden", saved.length === 0);
   renderProductGrid(document.getElementById("saved-products"), saved);
 }
 
@@ -471,27 +466,27 @@ function initializeCart() {
     const cart = readCart();
     const { total } = cartTotals(cart);
     if (!cart.length) {
-      container.innerHTML = `<div class="border rounded-4 p-5 text-center"><h2 class="h4 fw-bold">Your cart is ready for something good.</h2><p class="text-secondary">Browse the shop and add a few favorites to get started.</p><a class="btn btn-dark" href="products.html">Browse products</a></div>`;
+      container.innerHTML = `<div class="empty-state centered-panel"><h2>Your cart is ready for something good.</h2><p class="muted-copy">Browse the shop and add a few favorites to get started.</p><a class="button button-dark" href="products.html">Browse products</a></div>`;
       return;
     }
-    container.innerHTML = `<div class="row g-4">
-      <div class="col-lg-8"><div class="border rounded-4 p-3 p-md-4">
+    container.innerHTML = `<div class="cart-layout">
+      <div class="info-panel cart-items">
         ${cart.map((item) => {
           const product = getProduct(item.id);
-          return `<div class="row align-items-center g-3 py-3 border-bottom" data-cart-row="${product.id}">
-            <div class="col-3 col-md-2"><img src="${product.image}" alt="${product.alt}" class="img-fluid rounded-3"></div>
-            <div class="col-9 col-md-4"><h2 class="h6 fw-bold mb-1">${product.name}</h2><span class="text-secondary">${formatPrice(product.price)}</span></div>
-            <div class="col-7 col-md-3"><label class="visually-hidden" for="quantity-${product.id}">Quantity for ${product.name}</label><input class="form-control" id="quantity-${product.id}" type="number" min="1" max="99" value="${item.quantity}" data-quantity="${product.id}"></div>
-            <div class="col-5 col-md-3 text-end"><button class="btn btn-link link-danger p-0" type="button" data-remove="${product.id}">Remove</button></div>
+          return `<div class="cart-row" data-cart-row="${product.id}">
+            <img src="${product.image}" alt="${product.alt}">
+            <div class="cart-product-name"><h2>${product.name}</h2><span class="muted-copy">${formatPrice(product.price)}</span></div>
+            <div class="cart-quantity"><label class="screen-reader-only" for="quantity-${product.id}">Quantity for ${product.name}</label><input id="quantity-${product.id}" type="number" min="1" max="99" value="${item.quantity}" data-quantity="${product.id}"></div>
+            <div class="cart-remove"><button class="text-button danger-link" type="button" data-remove="${product.id}">Remove</button></div>
           </div>`;
         }).join("")}
-      </div></div>
-      <div class="col-lg-4"><div class="border rounded-4 p-4">
-        <h2 class="h5 fw-bold">Order summary</h2><div class="d-flex justify-content-between py-3 border-bottom"><span>Subtotal</span><strong>${formatPrice(total)}</strong></div>
-        <p class="small text-secondary mt-3">Shipping and any applicable taxes are calculated at checkout.</p>
-        <a class="btn btn-dark btn-lg w-100" href="checkout.html">Continue to checkout</a>
-        <a class="btn btn-outline-dark w-100 mt-2" href="products.html">Continue shopping</a>
-      </div></div>
+      </div>
+      <div class="info-panel order-summary">
+        <h2>Order summary</h2><div class="summary-line"><span>Subtotal</span><strong>${formatPrice(total)}</strong></div>
+        <p class="fine-print">Shipping and any applicable taxes are calculated at checkout.</p>
+        <a class="button button-dark button-full" href="checkout.html">Continue to checkout</a>
+        <a class="button button-outline button-full" href="products.html">Continue shopping</a>
+      </div>
     </div>`;
   }
   container.addEventListener("click", (event) => {
@@ -521,38 +516,38 @@ function initializeCheckout() {
   const container = document.getElementById("checkout-content");
   const cart = readCart();
   if (!cart.length) {
-    container.innerHTML = `<div class="border rounded-4 p-5 text-center"><h2 class="h4 fw-bold">Your cart is empty.</h2><p class="text-secondary">Add an item before starting checkout.</p><a class="btn btn-dark" href="products.html">Browse products</a></div>`;
+    container.innerHTML = `<div class="empty-state centered-panel"><h2>Your cart is empty.</h2><p class="muted-copy">Add an item before starting checkout.</p><a class="button button-dark" href="products.html">Browse products</a></div>`;
     return;
   }
   const { total } = cartTotals(cart);
-  container.innerHTML = `<div class="row g-4">
-    <div class="col-lg-7">
-      <form id="checkout-form" class="border rounded-4 p-4 p-lg-5">
-        <h2 class="h4 fw-bold mb-4">Delivery details</h2>
-        <div class="row g-3">
-          <div class="col-md-6"><label class="form-label" for="checkout-name">Full name</label><input class="form-control" id="checkout-name" name="name" autocomplete="name" required></div>
-          <div class="col-md-6"><label class="form-label" for="checkout-email">Email address</label><input class="form-control" id="checkout-email" name="email" type="email" autocomplete="email" required></div>
-          <div class="col-12"><label class="form-label" for="checkout-address">Street address</label><input class="form-control" id="checkout-address" name="address" autocomplete="street-address" required></div>
-          <div class="col-md-6"><label class="form-label" for="checkout-city">City</label><input class="form-control" id="checkout-city" name="city" autocomplete="address-level2" required></div>
-          <div class="col-md-6"><label class="form-label" for="checkout-postcode">Postal code</label><input class="form-control" id="checkout-postcode" name="postcode" autocomplete="postal-code" required></div>
-          <div class="col-12"><label class="form-label" for="checkout-payment">Payment method</label><select id="checkout-payment" name="payment" class="form-select" required><option value="">Choose a payment method</option><option>Card on delivery</option><option>Cash on delivery</option></select></div>
+  container.innerHTML = `<div class="checkout-layout">
+    <div>
+      <form id="checkout-form" class="form-panel">
+        <h2>Delivery details</h2>
+        <div class="checkout-fields">
+          <div class="field-group"><label for="checkout-name">Full name</label><input id="checkout-name" name="name" autocomplete="name" required></div>
+          <div class="field-group"><label for="checkout-email">Email address</label><input id="checkout-email" name="email" type="email" autocomplete="email" required></div>
+          <div class="field-group field-wide"><label for="checkout-address">Street address</label><input id="checkout-address" name="address" autocomplete="street-address" required></div>
+          <div class="field-group"><label for="checkout-city">City</label><input id="checkout-city" name="city" autocomplete="address-level2" required></div>
+          <div class="field-group"><label for="checkout-postcode">Postal code</label><input id="checkout-postcode" name="postcode" autocomplete="postal-code" required></div>
+          <div class="field-group field-wide"><label for="checkout-payment">Payment method</label><select id="checkout-payment" name="payment" required><option value="">Choose a payment method</option><option>Card on delivery</option><option>Cash on delivery</option></select></div>
         </div>
-        <p class="small text-secondary mt-3">Demo checkout only: no payment is collected and no order is sent to a server.</p>
-        <button class="btn btn-dark btn-lg w-100 mt-2" type="submit">Place demo order · ${formatPrice(total)}</button>
+        <p class="fine-print">Demo checkout only: no payment is collected and no order is sent to a server.</p>
+        <button class="button button-dark button-large button-full" type="submit">Place demo order · ${formatPrice(total)}</button>
       </form>
     </div>
-    <div class="col-lg-5"><div class="border rounded-4 p-4">
-      <h2 class="h5 fw-bold">Your order</h2>
-      ${cart.map((item) => { const product = getProduct(item.id); return `<div class="d-flex justify-content-between gap-3 py-2 border-bottom"><span>${product.name} <span class="text-secondary">× ${item.quantity}</span></span><strong>${formatPrice(product.price * item.quantity)}</strong></div>`; }).join("")}
-      <div class="d-flex justify-content-between pt-3"><strong>Total</strong><strong>${formatPrice(total)}</strong></div>
-    </div></div>
+    <div class="info-panel order-summary">
+      <h2>Your order</h2>
+      ${cart.map((item) => { const product = getProduct(item.id); return `<div class="summary-line"><span>${product.name} <span class="muted-copy">× ${item.quantity}</span></span><strong>${formatPrice(product.price * item.quantity)}</strong></div>`; }).join("")}
+      <div class="summary-line summary-total"><strong>Total</strong><strong>${formatPrice(total)}</strong></div>
+    </div>
   </div>`;
   container.querySelector("#checkout-form").addEventListener("submit", (event) => {
     event.preventDefault();
     if (!event.currentTarget.reportValidity()) return;
     const reference = `VC-${Date.now().toString().slice(-6)}`;
     saveCart([]);
-    container.innerHTML = `<div class="border rounded-4 p-5 text-center"><p class="text-uppercase fw-semibold text-secondary">Order received</p><h2 class="display-6 fw-bold">Thanks for shopping with us!</h2><p class="lead">Your demo order reference is <strong>${reference}</strong>.</p><p class="text-secondary">This was a front-end demonstration; your order was not transmitted and no payment was taken.</p><a href="products.html" class="btn btn-dark">Back to the shop</a></div>`;
+    container.innerHTML = `<div class="empty-state centered-panel"><p class="eyebrow">Order received</p><h2>Thanks for shopping with us!</h2><p class="intro">Your demo order reference is <strong>${reference}</strong>.</p><p class="muted-copy">This was a front-end demonstration; your order was not transmitted and no payment was taken.</p><a href="products.html" class="button button-dark">Back to the shop</a></div>`;
   });
 }
 
@@ -566,12 +561,47 @@ function initializeContact() {
   });
 }
 
+function initializeCarousel() {
+  const carousel = document.getElementById("home-carousel");
+  if (!carousel) return;
+  const slides = [...carousel.querySelectorAll(".hero-slide")];
+  const indicators = [...carousel.querySelectorAll("[data-slide-to]")];
+  let activeIndex = 0;
+
+  function showSlide(index) {
+    activeIndex = (index + slides.length) % slides.length;
+    slides.forEach((slide, slideIndex) => {
+      const isActive = slideIndex === activeIndex;
+      slide.classList.toggle("is-active", isActive);
+      slide.setAttribute("aria-hidden", String(!isActive));
+      indicators[slideIndex].classList.toggle("is-active", isActive);
+      if (isActive) indicators[slideIndex].setAttribute("aria-current", "true");
+      else indicators[slideIndex].removeAttribute("aria-current");
+    });
+  }
+
+  carousel.addEventListener("click", (event) => {
+    const control = event.target.closest("[data-slide]");
+    const indicator = event.target.closest("[data-slide-to]");
+    if (indicator) showSlide(Number(indicator.dataset.slideTo));
+    if (control) showSlide(activeIndex + (control.dataset.slide === "next" ? 1 : -1));
+  });
+
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    window.setInterval(() => showSlide(activeIndex + 1), 6000);
+  }
+  showSlide(0);
+}
+
 renderHeader();
 renderFooter();
 initializeAddToCart();
 initializeProductActions();
 
-if (page === "home") initializeHome();
+if (page === "home") {
+  initializeHome();
+  initializeCarousel();
+}
 if (page === "products") initializeProducts();
 if (page === "product") initializeProductDetails();
 if (page === "cart") initializeCart();
